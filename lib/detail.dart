@@ -5,7 +5,6 @@
 
 // import 'package:validators/validators.dart' as validator;
 
-
 // class FetchDataPage extends StatelessWidget {
 //   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -55,23 +54,26 @@
 //   }
 // }
 
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:validators/validators.dart' as validator;
-
-
-
+import 'package:intl/intl.dart';
 
 class FetchDataPage extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
+    String gettdate() {
+      DateTime days = DateTime.now();
+      return DateFormat('yyyy-MM-dd').format(days);
+    }
+
+    String data = gettdate();
     return Scaffold(
       appBar: AppBar(title: Text('Fetch Data from Firestore')),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collection('PhotoDatabase/2024-07-26/user').snapshots(),
+        stream: _firestore.collection('PhotoDatabase/$data/user').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
