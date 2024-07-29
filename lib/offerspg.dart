@@ -202,7 +202,7 @@
 //   }
 // }
 
-// // ....................................................................................................
+// // ------------------------------------------------------------------------------------------
 
 // class OffersPage extends StatefulWidget {
 //   @override
@@ -281,7 +281,7 @@
 //     );
 //   }
 // }
-// //  -----------------------------------------------------------------------------------------------------------------------------------
+// // ------------------------------------------------------------------------------------------------
 // class Item {
 //   final String name;
 //   final String description;
@@ -289,7 +289,6 @@
 //   final int discountedPrice;
 //   final String imageUrl;
 //   final String offer;
-//   final String? id;
 
 //   Item({
 //     required this.name,
@@ -298,7 +297,6 @@
 //     required this.discountedPrice,
 //     required this.imageUrl,
 //     required this.offer,
-//     this.id
 //   });
 
 //   Map<String, dynamic> toMap() {
@@ -342,13 +340,24 @@ class ItemForm extends StatefulWidget {
 
 class _ItemFormState extends State<ItemForm> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _originalPriceController = TextEditingController();
-  final _discountedPriceController = TextEditingController();
-  final _offerController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _originalPriceController;
+  late TextEditingController _discountedPriceController;
+  late TextEditingController _offerController;
   XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.item?.name ?? '');
+    _descriptionController = TextEditingController(text: widget.item?.description ?? '');
+    _originalPriceController = TextEditingController(text: widget.item?.originalPrice.toString() ?? '');
+    _discountedPriceController = TextEditingController(text: widget.item?.discountedPrice.toString() ?? '');
+    _offerController = TextEditingController(text: widget.item?.offer ?? '');
+    _requestPermissions();
+  }
 
   @override
   void dispose() {
@@ -362,20 +371,6 @@ class _ItemFormState extends State<ItemForm> {
 
   Future<void> _requestPermissions() async {
     await [Permission.camera, Permission.storage].request();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _requestPermissions();
-    if (widget.item != null) {
-      _nameController.text = widget.item!.name;
-      _descriptionController.text = widget.item!.description;
-      _originalPriceController.text = widget.item!.originalPrice.toString();
-      _discountedPriceController.text = widget.item!.discountedPrice.toString();
-      _offerController.text = widget.item!.offer;
-      _imageFile = widget.item!.imageUrl.isNotEmpty ? XFile(widget.item!.imageUrl) : null;
-    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -409,17 +404,23 @@ class _ItemFormState extends State<ItemForm> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate() && _imageFile != null) {
+    if (_formKey.currentState!.validate() && (_imageFile != null || widget.item?.imageUrl != null)) {
       try {
-        final imageUrl = await _uploadImage(_imageFile!);
+        String imageUrl;
+        if (_imageFile != null) {
+          imageUrl = await _uploadImage(_imageFile!);
+        } else {
+          imageUrl = widget.item!.imageUrl;
+        }
         final newItem = Item(
+          id: widget.item?.id ?? '',
           name: _nameController.text,
           description: _descriptionController.text,
           originalPrice: int.parse(_originalPriceController.text),
           discountedPrice: int.parse(_discountedPriceController.text),
           imageUrl: imageUrl,
           offer: _offerController.text,
-          id: widget.item?.id,
+         
         );
 
         widget.onAddItem(newItem);
@@ -502,9 +503,11 @@ class _ItemFormState extends State<ItemForm> {
                 },
               ),
               SizedBox(height: 10),
-              _imageFile == null
+              _imageFile == null && widget.item?.imageUrl == null
                   ? Text('No image selected.')
-                  : Image.file(File(_imageFile!.path), height: 100),
+                  : _imageFile != null
+                      ? Image.file(File(_imageFile!.path), height: 100)
+                      : Image.network(widget.item!.imageUrl, height: 100),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -536,6 +539,8 @@ class _ItemFormState extends State<ItemForm> {
   }
 }
 
+// ------------------------------------------------------------------------------------------
+
 class OffersPage extends StatefulWidget {
   @override
   _OffersPageState createState() => _OffersPageState();
@@ -545,40 +550,35 @@ class _OffersPageState extends State<OffersPage> {
   final List<Item> items = [];
 
   void _addItem(Item item) {
-    if (item.id == null) {
-      FirebaseFirestore.instance.collection('items').add(item.toMap()).then((docRef) {
-        item = Item(
-          name: item.name,
-          description: item.description,
-          originalPrice: item.originalPrice,
-          discountedPrice: item.discountedPrice,
-          imageUrl: item.imageUrl,
-          offer: item.offer,
-          id: docRef.id,
-        );
+    if (item.id.isEmpty) {
+      // Adding a new item
+      FirebaseFirestore.instance.collection('items').add(item.toMap()).then((doc) {
         setState(() {
-          items.add(item);
+          items.add(Item(
+            id: doc.id,
+            name: item.name,
+            description: item.description,
+            originalPrice: item.originalPrice,
+            discountedPrice: item.discountedPrice,
+            imageUrl: item.imageUrl,
+            offer: item.offer,
+          ));
         });
       });
     } else {
-      FirebaseFirestore.instance.collection('items').doc(item.id).update(item.toMap());
-      setState(() {
-        int index = items.indexWhere((i) => i.id == item.id);
-        items[index] = item;
+      // Updating an existing item
+      FirebaseFirestore.instance.collection('items').doc(item.id).update(item.toMap()).then((_) {
+        setState(() {
+          final index = items.indexWhere((i) => i.id == item.id);
+          if (index != -1) {
+            items[index] = item;
+          }
+        });
       });
     }
   }
 
-  void _deleteItem(String? itemId) {
-    if (itemId != null) {
-      FirebaseFirestore.instance.collection('items').doc(itemId).delete();
-      setState(() {
-        items.removeWhere((item) => item.id == itemId);
-      });
-    }
-  }
-
-  void _showItemForm({Item? item}) {
+  void _showItemForm([Item? item]) {
     showDialog(
       context: context,
       builder: (context) => ItemForm(onAddItem: _addItem, item: item),
@@ -605,7 +605,7 @@ class _OffersPageState extends State<OffersPage> {
           }
 
           final items = snapshot.data!.docs.map((doc) {
-            return Item.fromMap(doc.data() as Map<String, dynamic>);
+            return Item.fromMap(doc.data() as Map<String, dynamic>, doc.id);
           }).toList();
 
           return ListView.builder(
@@ -613,24 +613,17 @@ class _OffersPageState extends State<OffersPage> {
             itemBuilder: (context, index) {
               final item = items[index];
               return ListTile(
-                leading: item.imageUrl.isNotEmpty
-                    ? Image.network(item.imageUrl)
-                    : null,
+                leading: item.imageUrl.isNotEmpty ? Image.network(item.imageUrl) : null,
                 title: Text(item.name),
                 subtitle: Text(item.description),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: () => _showItemForm(item: item),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete),
-                      onPressed: () => _deleteItem(item.id),
-                    ),
+                   
+                  
                   ],
                 ),
+                onTap: () => _showItemForm(item),
               );
             },
           );
@@ -640,23 +633,27 @@ class _OffersPageState extends State<OffersPage> {
   }
 }
 
+// ------------------------------------------------------------------------------------------
+
 class Item {
+  final String id;
   final String name;
   final String description;
   final int originalPrice;
   final int discountedPrice;
   final String imageUrl;
   final String offer;
-  final String? id;
+ 
 
   Item({
+    required this.id,
     required this.name,
     required this.description,
     required this.originalPrice,
     required this.discountedPrice,
     required this.imageUrl,
     required this.offer,
-    this.id,
+   
   });
 
   Map<String, dynamic> toMap() {
@@ -670,15 +667,16 @@ class Item {
     };
   }
 
-  factory Item.fromMap(Map<String, dynamic> map) {
+  factory Item.fromMap(Map<String, dynamic> map, String id) {
     return Item(
+      id: id,
       name: map['name'],
       description: map['description'],
       originalPrice: map['originalPrice'],
       discountedPrice: map['discountedPrice'],
       imageUrl: map['imageUrl'],
       offer: map['offer'],
-      id: map['id'],
+    
     );
   }
 }
