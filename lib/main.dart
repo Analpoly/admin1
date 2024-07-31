@@ -1,6 +1,4 @@
 // import 'package:admin1/homepage.dart';
-import 'package:admin1/communitychat.dart';
-import 'package:admin1/homepage.dart';
 import 'package:admin1/login.dart';
 // import 'package:admin1/contextdate.dart';
 // import 'package:admin1/homepage.dart';
@@ -12,11 +10,9 @@ import 'package:flutter/material.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MaterialApp(
-    home:  Adminlogin(),
+    home: Adminlogin(),
     debugShowCheckedModeBanner: false,
   ));
 }

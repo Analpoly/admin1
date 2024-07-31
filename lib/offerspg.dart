@@ -5,7 +5,6 @@
 // import 'package:firebase_storage/firebase_storage.dart';
 // import 'package:permission_handler/permission_handler.dart';
 
-
 // class ItemForm extends StatefulWidget {
 //   final Function(Item) onAddItem;
 
@@ -281,7 +280,7 @@
 //     );
 //   }
 // }
-// // ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // class Item {
 //   final String name;
 //   final String description;
@@ -321,6 +320,7 @@
 //     );
 //   }
 // }
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -352,9 +352,12 @@ class _ItemFormState extends State<ItemForm> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.item?.name ?? '');
-    _descriptionController = TextEditingController(text: widget.item?.description ?? '');
-    _originalPriceController = TextEditingController(text: widget.item?.originalPrice.toString() ?? '');
-    _discountedPriceController = TextEditingController(text: widget.item?.discountedPrice.toString() ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.item?.description ?? '');
+    _originalPriceController = TextEditingController(
+        text: widget.item?.originalPrice.toString() ?? '');
+    _discountedPriceController = TextEditingController(
+        text: widget.item?.discountedPrice.toString() ?? '');
     _offerController = TextEditingController(text: widget.item?.offer ?? '');
     _requestPermissions();
   }
@@ -404,7 +407,8 @@ class _ItemFormState extends State<ItemForm> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate() && (_imageFile != null || widget.item?.imageUrl != null)) {
+    if (_formKey.currentState!.validate() &&
+        (_imageFile != null || widget.item?.imageUrl != null)) {
       try {
         String imageUrl;
         if (_imageFile != null) {
@@ -420,7 +424,6 @@ class _ItemFormState extends State<ItemForm> {
           discountedPrice: int.parse(_discountedPriceController.text),
           imageUrl: imageUrl,
           offer: _offerController.text,
-         
         );
 
         widget.onAddItem(newItem);
@@ -539,7 +542,7 @@ class _ItemFormState extends State<ItemForm> {
   }
 }
 
-// ------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
 
 class OffersPage extends StatefulWidget {
   @override
@@ -551,8 +554,10 @@ class _OffersPageState extends State<OffersPage> {
 
   void _addItem(Item item) {
     if (item.id.isEmpty) {
-      // Adding a new item
-      FirebaseFirestore.instance.collection('items').add(item.toMap()).then((doc) {
+      FirebaseFirestore.instance
+          .collection('items')
+          .add(item.toMap())
+          .then((doc) {
         setState(() {
           items.add(Item(
             id: doc.id,
@@ -566,8 +571,11 @@ class _OffersPageState extends State<OffersPage> {
         });
       });
     } else {
-      // Updating an existing item
-      FirebaseFirestore.instance.collection('items').doc(item.id).update(item.toMap()).then((_) {
+      FirebaseFirestore.instance
+          .collection('items')
+          .doc(item.id)
+          .update(item.toMap())
+          .then((_) {
         setState(() {
           final index = items.indexWhere((i) => i.id == item.id);
           if (index != -1) {
@@ -613,16 +621,36 @@ class _OffersPageState extends State<OffersPage> {
             itemBuilder: (context, index) {
               final item = items[index];
               return ListTile(
-                leading: item.imageUrl.isNotEmpty ? Image.network(item.imageUrl) : null,
+                leading: item.imageUrl.isNotEmpty
+                    ? Image.network(item.imageUrl)
+                    : null,
                 title: Text(item.name),
                 subtitle: Text(item.description),
-                trailing: Row(
+                trailing: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                   
-                  
+                    Text('PRICE :${(item.originalPrice).toString()}'),
+                    Text('OFFERPRICE:${item.discountedPrice.toString()}'),
                   ],
                 ),
+                onLongPress: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Text('Delete'),
+                          content: Text('Do you want to remove this offer'),
+                          actions: [
+                            ElevatedButton(
+                                onPressed: () {
+                                  _deleteItem(item.id);
+                                  Navigator.pop(context);
+                                },
+                                child: Text('ok')),
+                          ],
+                        );
+                      });
+                },
                 onTap: () => _showItemForm(item),
               );
             },
@@ -631,9 +659,20 @@ class _OffersPageState extends State<OffersPage> {
       ),
     );
   }
-}
 
-// ------------------------------------------------------------------------------------------
+  void _deleteItem(String itemId) {
+    FirebaseFirestore.instance
+        .collection('items')
+        .doc(itemId)
+        .delete()
+        .then((_) {
+      setState(() {
+        items.removeWhere((item) => item.id == itemId);
+      });
+    });
+  }
+}
+// ----------------------------------------------------------------------------
 
 class Item {
   final String id;
@@ -643,7 +682,6 @@ class Item {
   final int discountedPrice;
   final String imageUrl;
   final String offer;
- 
 
   Item({
     required this.id,
@@ -653,7 +691,6 @@ class Item {
     required this.discountedPrice,
     required this.imageUrl,
     required this.offer,
-   
   });
 
   Map<String, dynamic> toMap() {
@@ -676,7 +713,6 @@ class Item {
       discountedPrice: map['discountedPrice'],
       imageUrl: map['imageUrl'],
       offer: map['offer'],
-    
     );
   }
 }

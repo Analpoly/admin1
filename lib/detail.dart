@@ -127,6 +127,7 @@
 //   }
 // }
 
+import 'package:admin1/user.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:validators/validators.dart' as validator;
@@ -174,6 +175,15 @@ class FetchDataPage extends StatelessWidget {
                       ),
                     ),
                     title: Text(userName),
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => DetailScreen(
+                                    imageUrl: imageUrl,
+                                    userName: userName,
+                                  )));
+                    },
                   );
                 } else {
                   return ListTile(
