@@ -139,7 +139,7 @@ class FetchDataPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('Fetch Data from Firestore')),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collectionGroup('CHITHIRA').snapshots(),
+        stream: _firestore.collectionGroup('ATHAM').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
