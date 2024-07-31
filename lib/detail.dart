@@ -132,14 +132,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:validators/validators.dart' as validator;
 
 class FetchDataPage extends StatelessWidget {
+  final String itemName;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  FetchDataPage({required this.itemName});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Fetch Data from Firestore')),
       body: StreamBuilder<QuerySnapshot>(
-        stream: _firestore.collectionGroup('CHITHIRA').snapshots(),
+        stream: _firestore.collectionGroup(itemName).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
