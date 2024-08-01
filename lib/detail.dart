@@ -181,7 +181,7 @@ class FetchDataPage extends StatelessWidget {
                           MaterialPageRoute(
                               builder: (context) => DetailScreen(
                                     imageUrl: imageUrl,
-                                    userName: userName,
+                                    userName: userName, 
                                   )));
                     },
                   );

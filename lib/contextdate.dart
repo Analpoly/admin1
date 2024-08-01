@@ -64,8 +64,11 @@ class _AdminDateSetterScreenState extends State<AdminDateSetterScreen> {
               style: TextStyle(fontSize: 18),
             ),
             SizedBox(height: 20.0),
-            
-           
+            ElevatedButton(
+                onPressed: () {
+                  _selectDate(context);
+                },
+                child: Text('setdate')),
             SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: _saveDates,
