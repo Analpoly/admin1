@@ -163,6 +163,7 @@ class FetchDataPage extends StatelessWidget {
                 var doc = data[index].data() as Map<String, dynamic>;
                 var imageUrl = doc['imageUrl'] as String?;
                 var userName = doc['username'] as String? ?? 'No user';
+                var mobile = doc['phoneNumber'] as String? ?? 'No data';
 
                 if (imageUrl != null && validator.isURL(imageUrl)) {
                   return ListTile(
@@ -181,7 +182,8 @@ class FetchDataPage extends StatelessWidget {
                           MaterialPageRoute(
                               builder: (context) => DetailScreen(
                                     imageUrl: imageUrl,
-                                    userName: userName, 
+                                    userName: userName,
+                                    number:mobile
                                   )));
                     },
                   );

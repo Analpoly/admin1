@@ -34,16 +34,20 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:photo_view/photo_view.dart';
 
-class DetailScreen  extends StatelessWidget {
+class DetailScreen extends StatelessWidget {
   final String imageUrl;
   final String userName;
+  final String number;
 
-  DetailScreen({required this.imageUrl, required this.userName,});
+  DetailScreen(
+      {required this.imageUrl, required this.userName, required this.number});
 
   Future<Map<String, dynamic>?> _fetchUserDetails() async {
     try {
-      CollectionReference usersCollection = FirebaseFirestore.instance.collection('RegisterDatabase');
-      QuerySnapshot query = await usersCollection.where('username', isEqualTo: userName).get();
+      CollectionReference usersCollection =
+          FirebaseFirestore.instance.collection('RegisterDatabase');
+      QuerySnapshot query =
+          await usersCollection.where('mobilenumber', isEqualTo: number).get();
       if (query.docs.isNotEmpty) {
         DocumentSnapshot doc = query.docs.first;
         return doc.data() as Map<String, dynamic>;
